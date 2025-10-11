@@ -1,0 +1,27 @@
+prompt: |
+  For each metric in the provided list, decide if it is applicable for the given image generation instruction.
+  The instruction can be defined with text and/or images. Some instructions may contain no input images.
+  If is a metric is marked as applicable, it will be used as an axis to score and rank outputs for the given input.
+
+  ## Metric List
+  <metric_list>
+
+  ## Output Format
+  Respond only with a JSON dictionary containing all the metric names as keys, and the value 0 (is not applicable) or 1 (is applicable).
+  Also include a short global rationale for your overall decision-making process.
+  ```json
+  {
+    "<metric1>": <integer 0 or 1>,
+    "<metric2>": <integer 0 or 1>,
+    ...
+    "rationale": "<a short rationale, 20 words or less>"
+    "prompt": "<the input prompt repeated again>"
+  }
+  ```
+
+  ## Your Turn
+  task: <task>
+  input_prompt: <input_prompt>
+  input_images: <input_images>
+  metrics:
+

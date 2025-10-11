@@ -1,0 +1,8 @@
+name: "No Color Shift"
+description: |
+  Check if the overall color tone, brightness, and contrast match the reference or intended look.
+  Examples to Penalize: Added yellow tint, overexposure, or darkening compared to the reference.
+applicability: |
+  This metric is often applicable, especially for tasks like local editing.
+  However, it is not applicable when:
+  - The task is colorization or image-to-image translation, where color change is inherent to the task.

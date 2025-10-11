@@ -1,0 +1,11 @@
+name: "Face Identity Preservation"
+description: |
+  Check if the person's identity matches the reference or intended person, keeping facial structure and distinctive features the same.
+  Examples to Penalize: Changes in hairstyle, beard length, scars, facial expression, accessories, etc. that do not match the reference.
+applicability: |
+  This metric is often applicable, especially for tasks involving subject-driven generation.
+  However, it is not applicable when:
+  - The prompt does not explicitly or implicitly request face identity preservation.
+  - No person's face is visible (because there are no people, or faces are occluded).
+  - The task is stylization, where the creative freedom allows for many valid outputs and correctness is too subjective.
+  

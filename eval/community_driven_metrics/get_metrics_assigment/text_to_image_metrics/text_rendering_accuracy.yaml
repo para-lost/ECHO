@@ -1,0 +1,6 @@
+name: "Text Rendering Accuracy"
+description: |
+  Check if rendered text contains mistakes that hinder readability.
+  Examples to Penalize: Characters are garbled; there are missing or extra characters; there is incorrect spelling or punctuation; there is incorrect grammar.
+applicability: |
+  This metric is often applicable, but only when the prompt explicitly requests rendered text.

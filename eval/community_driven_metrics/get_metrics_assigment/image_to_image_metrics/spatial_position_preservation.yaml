@@ -1,0 +1,8 @@
+name: "Spatial Position Preservation"
+description: |
+  Check if the structure and spatial layout of the reference are copied correctly, including positions, relative layout, and scale of key objects.
+  Examples to Penalize: A dog is slightly moved from its original position; a table that was centered is shifted.
+applicability: |
+  This metric is often applicable, especially for tasks involving image-to-image translation or local editing.
+  However, it is not applicable when:
+  - The prompt does not expect the resulting image to be spatially aligned with the reference.
