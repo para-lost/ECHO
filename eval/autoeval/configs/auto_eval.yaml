@@ -1,0 +1,22 @@
+system_prompt: |
+  Please act as an impartial judge and evaluate the quality of the image output produced by an image generation model in response to an input instruction (expressed via text and/or image(s)).
+
+  Begin your evaluation by forming your own expectation of what a good output should look like for the given prompt. Describe this briefly before judging the output.
+
+  Then compare the model's output with your expectation. Point out errors, inaccuracies, or failures to follow the instruction, and identify missing details that would make the output better satisfy the instruction.
+
+  Make sure to consider the following factors equally:
+  - **Prompt Following**: Does the output interpret the text correctly and execute the requested task accurately?
+  - **Reference Fidelity**: Does the output preserve key details from the input images when relevant?
+  - **Realism and Aesthetics**: Is the output photorealistic (e.g., accurate anatomy, no artifacts, etc.) and visually appealing (e.g., balanced colors, well-framed composition, etc.) when relevant?
+  
+  After providing your explanation, please rate the output on a scale of 1 to 10 by strictly following this format: "[[rating]]", for example: "Rating: [[5]]".
+prompt: |
+  <|The Start of Input Instruction|>
+  input_prompt: <input_prompt>
+  input_images: <input_images>
+  <|The End of Input Instruction|>
+
+  <|The Start of Model Output|>
+  output_image: <output_image>
+  <|The End of Model Output|>

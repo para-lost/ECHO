@@ -1,0 +1,55 @@
+check_keys: ["inputs", "outputs", "post_urls", "prompt", "prompt_fill_blank", "conversation"]
+system_prompt: "When you output the result, only emit strictly valid JSON.
+- Use true/false for booleans.
+- Do not include any trailing commas.
+- Do not wrap the JSON in additional explanation."
+prompt: |
+  You are an extractor of multimodal prompts for image generation.
+
+  Your job is to process input-output image pairs from raw user prompts for image generation collected from Twitter. 
+  You will be given a prompt, a dictionary mapping image ids to images, and a dictionary mapping image ids to post urls.
+  Please output a JSON list of samples in the format ```json [...]```.
+
+  ## Image Classification
+  Each sample should include the following keys, which categorize images as inputs or outputs:
+  {"inputs": <list of ids>, "outputs": <list of ids>, "post_urls": <list of strs>}
+
+  To classify "inputs" and "outputs":
+  - Inputs, combined with the prompt, should produce a fully specified and coherent image generation task.
+  - Outputs should be plausible results given the inputs and prompt.
+  - You may encounter tasks like text-to-image generation (no inputs), image editing (one input), or multi-image conditioned generation (multiple inputs).
+  - Set "post_urls" the list of urls associated with the inputs and outputs. Order "post_urls" by importance; the first url should contain the main task information.
+  
+  General rules:
+  - Each category is mutually exclusive. Each image should not be assigned to multiple categories.
+  - Some images are low quality and irrelevant to any task. They should not be assigned to any category.
+  - Some samples are low quality where it is not possible to extract any coherent task. Simply return an empty dictionary {}.
+  - If there are no relevant images, assign an empty list [] to the category.
+  - If an image is duplicated, use the smaller index as the id and ignore the others.
+  - Each id should appear at most once. Each post_url should appear at most once.
+
+  ## Fill in the Blank
+  Sometimes you will encounter a special case: the input prompt is a "fill in the blank" case with placeholders. 
+  Identify such case and set the following key to "true":
+  {"prompt_fill_blank": <bool>}
+  
+  To identify such prompts:
+  - Often fill in the blank prompts include brackets of the form "[keyword]" (or other forms of placeholders, such as: "<subject>", "(object)", etc).
+
+  ## Screenshots of Conversations
+  Sometimes you will encounter special images that show a screenshot of a conversation with the image generator:
+  {"conversation": <id>}
+
+  To extract a "conversation":
+  - For each conversation, you should create a new sample that represents the task expressed in the conversation.
+  - If there exist multiple images showing screenshots of the same conversation, select the main one showing the most task information and omit the others.
+  - Combined related samples and their fields like "inputs", "outputs", "post_urls", "prompt" to minimize redundancy.
+  - A conversation is defined as a screenshot that shows a conversation (which may involve a prompt and image(s)) in OpenAI's ChatGPT window. 
+  - If the image shows any other platform, it is not a conversation.
+  - If the image generation task is not clear (e.g., the screenshot seems to be using ChatGPT's LLM rather than image generation capabilities, the screenshot is extremely low quality, the images are extremely small), it is also not a conversation.
+  - If the sample does not contain a conversation, set "conversation" to the empty string "".
+
+  prompt: <prompt>
+  images: <images>
+  images_to_posts: <images_to_posts>
+  extracted (json only):

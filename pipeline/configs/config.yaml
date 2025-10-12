@@ -1,0 +1,11 @@
+gpt_kwargs:
+  # ============ Lab Info ===============
+  api_cls: "AsyncOpenAI"
+  api_kwargs:
+    api_key: "your_api_key"
+
+transformers_kwargs:
+  model_cls: AutoModelForVision2Seq
+  model_kwargs:
+    model_name_or_path: Qwen/Qwen2.5-VL-32B-Instruct
+    load_in_4bit: True

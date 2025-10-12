@@ -1,0 +1,26 @@
+check_keys: ["prompt", "outputs"]
+system_prompt: ""
+prompt: |
+  You are an extractor of multimodal prompts for image generation.
+
+  Your job is to extract the text prompt and bounding boxes of individual images from screenshots of conversations with an image generator.
+
+  Please output only a valid JSON dictionary according to this schema:
+  ```json {"prompt": <str>, "inputs": <list of bounding boxes>, "outputs": <list of bounding boxes>}```
+
+  To extract "prompt":
+  - If there is text, run OCR and extract the raw text input by the user exactly.
+  - The extracted text should produce a fully specified and coherent image generation task; ignore other irrelevant text.
+  - If there is no relevant text, output the empty string "".
+
+  To extract "inputs" and "outputs":
+  - Extract a list of bounding boxes for every individual image.
+  - Each bounding box should be formatted as [x1, y1, x2, y2]; (x1, y1) is the top-left and (x2, y2) is the bottom-right.
+  - Also sort bounding boxes as "inputs" vs. "outputs" of the image generator.
+  - The extracted images should produce a fully specified and coherent image generation task; ignore other irrelevant images.
+  - Each image should only appear once. Ignore exact duplicates.
+  - If there are no "inputs" output an empty list [].
+  - If there are no "outputs" output an empty list [].
+  
+  images: <images>
+  extracted:

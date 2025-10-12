@@ -1,0 +1,33 @@
+check_keys: ["quality", "review"]
+system_prompt: ""
+
+prompt: |
+  You are an expert benchmark curator. Your job is to classify the quality of a given sample, which includes the following fields:
+  1. prompt: A single text string with an instruction for image generation.
+  2. input_images: An array of zero or more image files the prompt refers to.
+  3. output_images: An array of zero or more image files produced by the prompt.
+
+  ## Quality Classification
+  Inspect the prompt and its images, then assign exactly one label:
+  - Benchmark: Everything is correct and evaluation-grade. The prompt is a single, coherent instruction for image generation, and the input/output images match perfectly.
+  - Manual Review: The prompt itself is a valid, clear instruction, but there are post-processing issues (e.g., missing or mismatched images, incorrect groupings, broken file references) that require human inspection.
+  - Discard: The prompt is a comment about GPT-4o / image generation quality.  Only use discard when you are very sure that the prompt is not something a person would input into an AI model (note that people can be very creative with their prompts, so never use discard unless you are very sure).
+  
+  ## Look Out For
+  Most samples should be "Benchmark" quality, and very few "Discard" quality. However, be very rigorous about ensuring "Benchmark" is the highest quality, and when in doubt, assign it as "Manual Review".
+
+  Some cases that should be marked as "Manual Review":
+    - The prompt and input images don't make sense together (i.e., the image is not necessary to execute the prompt)
+    - The prompt and output images don't make sense together (i.e., the prompt describes objects that conflict with the objects in the output)
+    - Listed images don't actually exist.
+  
+  ## Return only a JSON object with the following fields:
+    - quality: one of ["Benchmark", "Manual Review", "Discard"].  
+    - review: a string providing the reason for Manual Review, chosen from ["output image", "input image", "prompt"]. If quality is "Benchmark" or "Discard", set review to an empty string.
+  
+  ## Your Turn
+  prompt: <prompt>
+  input_images: <input_images>
+  output_images: <output_images>
+  
+  Answer (json only):

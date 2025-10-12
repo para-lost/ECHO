@@ -1,0 +1,55 @@
+check_keys: ["prompt", "prompt_modified", "post_urls", "quality", "community_feedback"]
+system_prompt: "When you output the result, only emit strictly valid JSON.
+- Use true/false for booleans.
+- Do not include any trailing commas.
+- Do not wrap the JSON in additional explanation."
+
+prompt: |
+  You are an extractor of multimodal prompts for image generation.
+
+  You will be given a JSON that represents a Twitter post and its reply tree. Each post in the tree may contain an image generation prompt; your job is to extract them into unique samples.
+  For every input, try to extract at least one sample rather than returning an empty list. We want to extract as many samples as possible, and use a quality score for filtering.
+  Please output a JSON list of samples in the format ```json [...]```.
+
+  ## Post to Prompt
+  Each sample should include the following keys:
+  {"prompt": <str>, "prompt_modified": <bool>, "post_urls": <list of strs>}
+  
+  To extract the "prompt":
+  - Identify each post that discusses a unique image generation task. Set "prompt" as the post text that describes this task. Be very broad in the definition of "prompt"; any instruction, description, comment, or question that hints at an image generation task is fine.
+  - Make a new sample for every new prompt, even if it is a slight modification of another sample's prompt.
+  - Try to extract the prompt from the post text exactly, without modification. You may modify the prompt when the modification is obvious, for example, piecing together text from multiple posts or filling in placeholder text. Set the flag "prompt_modified" to true or false accordingly.
+  - Omissions of text should not be considered as modifications; you should omit statements that are obviously not part of the prompt.
+  - Many main posts say something like "Prompt Below" or "Prompt in Next Comment"; this means that the tree is likely to have a really good sample, and the prompt needs to be found in the replies.
+
+  To determine "post_urls":
+  - For each "prompt", set "post_urls" to the urls of posts in the tree that likely contain images that are related inputs or outputs for that prompt, which you can determine from the post text.
+  - Order "post_urls" by importance; the first url should contain the main task information.
+  - Many replies use a similar prompt as the root post and attach an output image. These should be grouped in the "post_urls" of the main post. Try to infer if this is happening from the reply text.
+  - If the reply's text indicates a new task, it should be a new sample. If the reply's text indicates it is irrelevant to image generation, it should be omitted. If the reply contains no text and an image, it should be included in "post_urls" so that it can be further processed later.
+  - Each url/post should appear at most once; images should not be duplicated across samples.
+
+  ## Quality Score
+  Each sample should also classify the prompt quality:
+  {"quality": <str>}
+
+  To classify "quality":
+  - Classify the quality as one of the following categories: ["Benchmark", "Analysis", "Trash"].
+  - "Benchmark" are the highest quality prompts, which instruct a single coherent image generation task, that can be used for benchmarking. Be fairly strict about the quality.
+  - "Analysis" are moderate quality prompts that are not in "prompt" format, which are often comments or questions relevant to image generators but do not query a specific task, and are still usable for analysis.
+  - "Trash" are low quality prompts that have no clear task or are clearly irrelevant. Our focus is on OpenAI's gpt-image-1 or 4o image generation; if the post clearly uses another model or platform like DALL-E, Stable Diffusion, some video generator, etc. it should be classified as "Trash".
+  - Make sure to collect as many "Analysis" samples as possible, while maintaining relevancy. For these samples, set "prompt" to be the relevant text or commentary about image generation.
+
+  ## Community Feedback
+  Each sample should contain a list of community feedback:
+  {"community_feedback": [{"post_url": <str>, "feedback": <str>}, ...]}
+
+  To extract "community_feedback":
+  - For each post in the tree, determine whether it discusses the sample's success / quality (e.g., "really cool", "does not work", etc.).
+  - If a post obviously does not have feedback, do not include it.
+  - The feedback may come from the main post's author or from other authors in the replies.
+  - Include the full feedback text without modification such that there is sufficient context, but also omit obviously irrelevant text.
+  - Each url/post should appear at most once in the "community_feedback"; feedback should not be duplicated across samples.
+
+  json_post_tree: <tree>
+  extracted (Answer Only):
