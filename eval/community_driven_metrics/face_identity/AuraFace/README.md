@@ -2,7 +2,7 @@
 
 Scripts for using the AuraFace model is under `eval/AuraFace`. The script supports multiple input/output images with maximum similarity scoring.
 
-## Setup - Install dependences and model
+## Setup - Install dependencies and model
 
 ### 1. Install Dependencies for AuraFace
 
