@@ -6,6 +6,22 @@ This repository contains the code for the paper [**Constantly Improving Image Mo
 
 ---
 
+## About the Dataset
+ECHO is a framework for constructing benchmarks directly from social media posts, which showcase novel prompts and qualitative user judgements. As a case study, we apply ECHO to discussion of GPT-4o Image Gen on Twitter/X. Below we describe the data provided in this initial release.
+
+We provide the academic version of our dataset, which contains the data studied in our paper, in the following HuggingFace repo: [echo-bench/echo2025](https://huggingface.co/datasets/echo-bench/echo2025).
+| Split | Size | Description |
+|-------|-------------|------|
+| `analysis` | 29.3k | Moderate-quality data suitable for large-scale analysis.|
+| `text_to_image` | 848 | High-quality data with prompt-only inputs for benchmarking.|
+| `image_to_image` | 717 | High-quality data with prompt and image inputs for benchmarking.|
+
+We also provide a version of the dataset with an MIT license in the following HuggingFace repo: [echo-bench/echo2025-mit](https://huggingface.co/datasets/echo-bench/echo2025-mit).
+| Split | Size | Description |
+|-------|-------------|------|
+| `text_to_image` | 848 | Mirrors `text_to_image` in the academic version, but only contains the prompts extracted by our postprocessing pipeline, without other metadata.|
+| `image_to_image` | 717 | Mirrors `image_to_image` in the academic version, but generates synthetic input images from dense text captions, using GPT-4o Image Gen. |
+
 ## Setup
 
 ```bash
@@ -13,21 +29,24 @@ conda env create -f environment.yaml
 conda activate echo
 ```
 
-## Download the Dataset
-Inside the echo_bench folder:
-
-1. Download images for the `image_to_image` split:
+## Quickstart
+Load the academic version of the dataset:
 ```
-cd echo_bench
-python download_script.py
+ds = load_dataset(
+    "echo-bench/echo2025",
+    name="text_to_image", # ["analysis", "text_to_image", "image_to_image"]
+    split="test",
+)
 ```
-
-2. Load datasets with `load_dataset.ipynb`, which contains code for loading:
-
-- `image_to_image`
-- `text_to_image`
-- `image_to_image_synthetic`
-- `analysis`
+Load the MIT licensed version of the dataset:
+```
+ds_mit = load_dataset(
+    "echo-bench/echo2025-mit",
+    name="text_to_image", # ["text_to_image", "image_to_image"]
+    split="test",
+)
+```
+See [`echo_bench/load_dataset.ipynb`](echo_bench/load_dataset.ipynb) for a more in-depth walkthrough for loading the dataset.
 
 ## Evaluation
 
@@ -64,8 +83,7 @@ The `get_metrics_assignment` folder contains the prompt used to classify which m
 - Results for the `text_to_image` assignment:  
   `eval/community_driven_metrics/text_to_image_assigment.json`
 
-
-## Scraping Pipeline and Postprocess Pipeline
+## Data Collection Pipeline
 Coming soon.
 
 ## BibTeX
