@@ -1,19 +1,11 @@
 from collections import Counter
 import json
 import numpy as np
+from omegaconf import OmegaConf
 import os
 import pandas as pd
 
 import script_eval
-
-split = "text_to_image"
-csv_file = "all_scores.csv"
-
-judge_files = [
-    f"./runs/gpt/{split}/{csv_file}",
-    f"./runs/gemini/{split}/{csv_file}",
-    f"./runs/qwen/{split}/{csv_file}",
-]
 
 def maybe_extract_score(df: pd.DataFrame) -> pd.Series:
     """
@@ -100,7 +92,26 @@ def majority_vote_pairwise(judge_results_list):
     )
     return majority
 
-def main():
+def arena_fastchat_winrate(results, models=None):
+    df = results
+    if models is not None:
+        # remove battles where either model_a or model_b should be excluded
+        df = df.loc[df.model_a.isin(models) & df.model_b.isin(models)]
+    # winrate means win=1, lose=0, tie=0.5
+    a_win = df['winner'].eq('model_a')
+    b_win = df['winner'].eq('model_b')
+    score_a = np.where(a_win, 1.0, np.where(b_win, 0.0, 0.5))
+    score_b = 1.0 - score_a
+    scores = pd.concat([
+        pd.DataFrame({'question_id': df['question_id'], 'model': df['model_a'], 'score': score_a}),
+        pd.DataFrame({'question_id': df['question_id'], 'model': df['model_b'], 'score': score_b}),
+    ], ignore_index=True)
+    scores["scores"] = scores["score"]
+    return scores.groupby(['model'])['score'].mean().reset_index()
+
+def main(config):
+    judge_files = [f"runs/{config.split}/{mode}.csv" for mode in config.judge_names]
+
     # Load all judge CSVs
     print("Loading results from all judges...")
     judge_results = []
@@ -108,19 +119,7 @@ def main():
         df = load_judge_results(jf)
         judge_results.append(df)
         print(f"Loaded {len(df)} rows from {jf}")
-
-    # Determine common models from the Gemini judge (index 1)
-    if len(judge_results) < 2 or judge_results[1].empty:
-        raise RuntimeError("Gemini judge (index 1) missing or empty; cannot determine common models.")
-    gemini_models = set(judge_results[1]["model"].unique())
-    print(f"\nCommon models from gemini judge: {sorted(gemini_models)}")
-
-    # Filter all judges to those models
-    filtered = []
-    for i, df in enumerate(judge_results):
-        fdf = df[df["model"].isin(gemini_models)].copy()
-        filtered.append(fdf)
-        print(f"Judge {i}: kept {len(fdf)} rows after filtering to common models")
+    filtered = judge_results
 
     # Majority vote across judges (pairwise)
     print("\nTaking majority vote on pairwise comparisons...")
@@ -131,7 +130,7 @@ def main():
 
     # Winrates (fastchat arena-style)
     print("\nComputing winrates...")
-    winrate = script_eval.arena_fastchat_winrate(autoeval_results)
+    winrate = arena_fastchat_winrate(autoeval_results)
     # Note that 'winrate' is typically a pandas DataFrame; print nicely
     try:
         print(winrate.sort_values("winrate", ascending=False))
@@ -165,7 +164,6 @@ def main():
     ], ignore_index=True)
 
     per_model = scores.groupby('model')['score']
-    print(per_model)
     winrate_cmp = per_model.mean()
     # Sample std over comparisons
     std_cmp = per_model.std(ddof=1)
@@ -204,4 +202,6 @@ def main():
     return per_model
 
 if __name__ == "__main__":
-    per_model = main()
+    config = OmegaConf.load("configs/config_winrate.yaml")
+    config = OmegaConf.merge(config, OmegaConf.from_cli())
+    per_model = main(config)

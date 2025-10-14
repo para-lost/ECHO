@@ -1,0 +1,5 @@
+split: "text_to_image"
+judge_files: 
+  - gpt
+  # - gemini
+  # - qwen

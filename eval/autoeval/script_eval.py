@@ -11,31 +11,19 @@ from PIL import Image
 import random
 import re
 import subprocess
+import sys
 from tqdm import tqdm
 from omegaconf import OmegaConf
 
-import sys
-from utils_transformers import *
-from utils_gpt import *
-from utils_arena_fastchat import *
+import utils_transformers
+import utils_gpt
+import utils_arena_fastchat
 
-import argparse
+def extract_score(txt):
+    pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
+    m = pattern.search(str(txt))
+    return int(m.group(1)) if m else None
 
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument(
-        "--mode",
-        default="gpt",
-        choices=["gpt", "transformers", "qwen", "gemini"],
-        help="Backend to use for evaluation."
-    )
-    p.add_argument(
-        "--root-path",
-        required=True,
-        help="Root path to save the results."
-    )
-    return p.parse_args()
-    
 def scores_to_pairwise(results):
     models = results["model"].unique()
     df = []
@@ -58,11 +46,6 @@ def scores_to_pairwise(results):
                 "margin": abs(score_a - score_b),
             })
     return pd.DataFrame(df)
-
-def extract_score(txt):
-    pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
-    m = pattern.search(str(txt))
-    return int(m.group(1)) if m else None
 
 def format_sample_score(sample, idx, output_image_folder, tag_model=False, image_size=512, config_path="configs/auto_eval.yaml"):
     prompt_config = OmegaConf.load(config_path)
@@ -134,27 +117,32 @@ async def experiment_evaluate(model_kwargs, input_ds, format_sample_fn, format_s
     
     return raw_results
 
-if __name__ == "__main__":
-    args = parse_args()
-    mode = args.mode
-    root_path = args.root_path
-    config = OmegaConf.load("configs/config.yaml")
-
-    for config in ["text_to_image", "image_to_image_synthetic"]:
-        output_image_folder = f"{root_path}/{config}"
-        input_ds = load_dataset("echo-bench/echo-bench", name=config, split="test", streaming=False)
+def main(config):
+    root_path, mode = config.root_path, config.mode
+    for split_name in config.split_names:
+        output_image_folder = f"{root_path}/{split_name}"
+        input_ds = load_dataset("echo-bench/echo2025", name=split_name, split="test", streaming=False)
+        clean_results = []
         for model in sorted([os.path.basename(f) for f in glob.glob(f"{output_image_folder}/*")]):
-            output_file_path=f"./runs/{mode}/{config}/{model}.json"
-            if os.path.exists(output_file_path):
-                continue
             print(f"Evaluating {model}")
-            asyncio.run(experiment_evaluate(
+            raw_results = asyncio.run(experiment_evaluate(
                 model_kwargs=config[f"{mode}_kwargs"],
                 input_ds=input_ds,
                 mode=mode,
                 format_sample_fn=format_sample_score,
-                output_file=output_file_path,
+                output_file=f"runs/{split_name}/{mode}/{model}.json",
                 format_sample_kwargs={
                     "output_image_folder": f"{output_image_folder}/{model}",
                 },
             ))
+            for k, v in raw_results.items():
+                try:
+                    clean_results.append({"question_id": k, "model": model, "score": extract_score(v)})
+                except:
+                    print(f"Error extracting score for {k}")
+        pd.DataFrame(clean_results).to_csv(f"runs/{split_name}/{mode}.csv", index=False)
+
+if __name__ == "__main__":
+    config = OmegaConf.load("configs/config_eval.yaml")
+    config = OmegaConf.merge(config, OmegaConf.from_cli())
+    main(config)
