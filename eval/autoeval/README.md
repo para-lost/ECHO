@@ -1,38 +1,30 @@
 # AutoEval
 
 ## Files
-- `eval.py`: runs auto-judge to generate results.
-- `configs/auto_eval.yaml`: prompt for the auto eval.
-- `winrate.py`: get the winrate results on the model's scores.
+- `configs/auto_eval.yaml`: Prompt for the auto eval.
+- `script_eval.py`: Runs auto-judge to generate results.
+- `script_winrate.py`: Get the win rate results using the scores.
 
-## Run
-```bash
-python eval.py --mode "gpt" --root-path "../results"
-python eval.py --mode "qwen" --root-path "../results"
-python eval.py --mode "gemini" --root-path "../results"
+## Run VLM-as-a-Judge
+```
+export ROOT_PATH="example_outputs"
+python script_eval.py mode="gpt" root_path=$ROOT_PATH
+python script_eval.py mode="qwen" root_path=$ROOT_PATH
+python script_eval.py mode="gemini" root_path=$ROOT_PATH
 ```
 
---root-path must contain model generations in the format:
+The folder `$ROOT_PATH` must contain model outputs in the format:
 ```bash
-../results/<config_name>/<model_name>/<id>.jpg
-```
-Example:
-```bash
-../results/image_to_image_synthetic/bagel/1904601298038906936.jpg
-```
-
-## Output
-Running eval.py produces JSON results under runs/, e.g.:
-```bash
-runs/image_to_image_synthetic/bagel.json
+# Template
+$ROOT_PATH/<split_name>/<model_name>/<id>.jpg
+# Example
+$ROOT_PATH/text_to_image/bagel/1904601298038906936.jpg
 ```
 
-## Convert to CSV
-Organize the JSON results into a CSV with columns:
-question_id,model,score
+Running `script_eval.py` produces compiled csvs under `runs/<split_name>/<mode>.csv` (composed of the columns `question_id,model,score`) as well as raw outputs as JSON files.
 
-## Win-rate
-Run winrate.py on the CSV file(s) to get win-rate results:
+## Compute Win Rate
+Run script_winrate.py on the csv file(s) to get win rate results:
 ```bash
-python winrate.py
+python script_winrate.py mode="text_to_image" "judge_names=['gpt']"
 ```

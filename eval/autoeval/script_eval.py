@@ -1,47 +1,29 @@
-import re
-from collections import defaultdict, Counter
-import os
-from PIL import Image
-from omegaconf import OmegaConf
-import subprocess
-from datasets import load_dataset
 import asyncio
-from tqdm import tqdm
+from collections import defaultdict, Counter
+from datasets import load_dataset
+import glob
+import itertools
 import json
 import numpy as np
+import os
 import pandas as pd
-import itertools
+from PIL import Image
 import random
-import glob
-
+import re
+import subprocess
 import sys
-# sys.path.append("../")
-from utils_transformers import *
-from utils_gpt import *
-from utils_arena_hard import *
-from utils_arena_fastchat import *
+from tqdm import tqdm
+from omegaconf import OmegaConf
 
+import utils_transformers
+import utils_gpt
+import utils_arena_fastchat
 
-import argparse
+def extract_score(txt):
+    pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
+    m = pattern.search(str(txt))
+    return int(m.group(1)) if m else None
 
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument(
-        "--mode",
-        default="gpt",
-        choices=["gpt", "transformers", "qwen", "gemini"],
-        help="Backend to use for evaluation."
-    )
-    p.add_argument(
-        "--root-path",
-        required=True,
-        help="Root path to save the results."
-    )
-    return p.parse_args()
-    
-# ====================
-#  Human Correlation
-# ====================
 def scores_to_pairwise(results):
     models = results["model"].unique()
     df = []
@@ -64,71 +46,6 @@ def scores_to_pairwise(results):
                 "margin": abs(score_a - score_b),
             })
     return pd.DataFrame(df)
-
-# =================
-#    Arena Hard
-# =================
-def get_arena_hard_battles(results, model, category=None, weight=3):
-    patterns = ["\[\[([AB<>=]+)\]\]", "\[([AB<>=]+)\]"]
-    results = {k: utils_arena_hard.get_score(v, patterns) for k, v in results.items()}
-    # weight = duplicate rows to upweight opinion
-    label_to_score = {
-        "A>B": [1],
-        "A>>B": [1] * weight,
-        "A=B": [0.5],
-        "A<<B": [0] * weight,
-        "A<B": [0],
-        "B>A": [0],
-        "B>>A": [0] * weight,
-        "B=A": [0.5],
-        "B<<A": [1] * weight,
-        "B<A": [1],
-    }
-    results = {k: label_to_score[v] for k, v in results.items()}
-    # create df
-    df = []
-    for k, v in results.items():
-        if "output-baseline" in k:
-            k_fwd = k
-            k_rev = k.replace("output-baseline", "baseline-output")
-            scores = np.array(results[k_fwd]) + 1 - np.array(results[k_rev])
-            for score in scores:
-                df.append({
-                    "uid": "_".join(k.split("_")[:-1]),
-                    "model": model,
-                    "category": category,
-                    "scores": score,
-                })
-        else:
-            continue
-    df = pd.DataFrame(df)
-    return df
-
-def arena_hard_winrate(results_folder, models, id_to_category=None):
-    battles = []
-    for model in models:
-        results = json.load(open(f"{results_folder}/{model}/raw_results.json"))
-        df = get_arena_hard_battles(results, model)
-        battles.append(df)
-    battles = pd.concat(battles)
-    if id_to_category is not None:
-        battles["category"] = battles["uid"].map(id_to_category)
-    categories = battles["category"].unique()
-    leaderboards = []
-    for category in categories:
-        leaderboard = utils_arena_hard.print_leaderboard(battles[battles["category"] == category], category)
-        leaderboard["category"] = category
-        leaderboards.append(leaderboard)
-    leaderboards = pd.concat(leaderboards)
-    return leaderboards, battles
-
-# =================
-#    Auto Eval
-# =================
-def extract_score(txt):
-    pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
-    m = pattern.search(str(txt))
-    return int(m.group(1)) if m else None
 
 def format_sample_score(sample, idx, output_image_folder, tag_model=False, image_size=512, config_path="configs/auto_eval.yaml"):
     prompt_config = OmegaConf.load(config_path)
@@ -200,28 +117,32 @@ async def experiment_evaluate(model_kwargs, input_ds, format_sample_fn, format_s
     
     return raw_results
 
-
-if __name__ == "__main__":
-    args = parse_args()
-    mode = args.mode
-    root_path = args.root_path
-    config = OmegaConf.load("configs/config.yaml")
-
-    for config in ["text_to_image", "image_to_image_synthetic"]:
-        output_image_folder = f"{root_path}/{config}"
-        input_ds = load_dataset("echo-bench/echo-bench", name=config, split="test", streaming=False)
+def main(config):
+    root_path, mode = config.root_path, config.mode
+    for split_name in config.split_names:
+        output_image_folder = f"{root_path}/{split_name}"
+        input_ds = load_dataset("echo-bench/echo2025", name=split_name, split="test", streaming=False)
+        clean_results = []
         for model in sorted([os.path.basename(f) for f in glob.glob(f"{output_image_folder}/*")]):
-            output_file_path=f"./runs/{mode}/{config}/{model}.json"
-            if os.path.exists(output_file_path):
-                continue
             print(f"Evaluating {model}")
-            asyncio.run(experiment_evaluate(
+            raw_results = asyncio.run(experiment_evaluate(
                 model_kwargs=config[f"{mode}_kwargs"],
                 input_ds=input_ds,
                 mode=mode,
                 format_sample_fn=format_sample_score,
-                output_file=output_file_path,
+                output_file=f"runs/{split_name}/{mode}/{model}.json",
                 format_sample_kwargs={
                     "output_image_folder": f"{output_image_folder}/{model}",
                 },
             ))
+            for k, v in raw_results.items():
+                try:
+                    clean_results.append({"question_id": k, "model": model, "score": extract_score(v)})
+                except:
+                    print(f"Error extracting score for {k}")
+        pd.DataFrame(clean_results).to_csv(f"runs/{split_name}/{mode}.csv", index=False)
+
+if __name__ == "__main__":
+    config = OmegaConf.load("configs/config_eval.yaml")
+    config = OmegaConf.merge(config, OmegaConf.from_cli())
+    main(config)

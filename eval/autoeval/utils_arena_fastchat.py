@@ -1,3 +1,8 @@
+# =================================================================
+# This code is a copy of rating_systems.py in FastChat
+# Original source: https://github.com/lm-sys/FastChat/blob/main/fastchat/serve/monitor/rating_systems.py
+# =================================================================
+
 import os
 import math
 import multiprocessing as mp
