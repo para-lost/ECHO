@@ -28,7 +28,7 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 # ------------------ CONFIG ------------------
-REPO_ID = "echo-bench/echo-bench"    # dataset repo id
+REPO_ID = "echo-bench/echo2025"    # dataset repo id
 CONFIG  = "image_to_image"           # which config to pull
 SPLIT   = "test"                    # split name
 OUT_DIR = Path("data/images_to_image")

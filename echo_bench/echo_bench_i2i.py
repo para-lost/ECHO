@@ -22,7 +22,7 @@ class EchoBenchHFImageToImage(Dataset):
 
     def __init__(
         self,
-        repo_id: str = "echo-bench/echo-bench",
+        repo_id: str = "echo-bench/echo2025",
         name: str = "image_to_image",
         split: str = "test",
     ) -> None:

@@ -225,10 +225,10 @@ def calculate_global_ssim_loss(outputs, inputs):
 
 def parse_args():
     p = argparse.ArgumentParser("Strict image-quality auditor (OpenAI)")
-    p.add_argument("--dataset", default="echo-bench/echo-bench",
+    p.add_argument("--dataset", default="echo-bench/echo2025-mit",
                    help="HF dataset name or local path")
-    p.add_argument("--config",   default="image_to_image_synthetic",
-                   help="Dataset config to evaluate (default: image_to_image_synthetic)")
+    p.add_argument("--config",   default="image_to_image",
+                   help="Dataset config to evaluate (default: image_to_image)")
     p.add_argument("--split",   default="test",
                    help="Dataset split to evaluate (default: test)")
     p.add_argument("--outdir",  default="./results",
