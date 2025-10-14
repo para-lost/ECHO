@@ -1,15 +1,19 @@
-from PIL import Image
-import re
 import asyncio
 import base64
+import cv2
 from io import BytesIO
 from itertools import islice
 import json
 import numpy as np
-import cv2
-from tqdm.asyncio import tqdm_asyncio
-from openai import AsyncOpenAI
 import openai
+from openai import OpenAI
+from openai import AsyncOpenAI
+import os
+from PIL import Image
+import re
+from tqdm.asyncio import tqdm_asyncio
+
+import script_eval
 
 def resize_to_side(image, target_size, fn="min"):
     width, height = image.size
@@ -182,9 +186,11 @@ async def _gpt_batch_call_async(
     max_concurrency=8,
     model="chatgpt-4o-latest",
     api_cls="AsyncOpenAI",
-    api_kwargs={},
     **call_kwargs,
 ):
+    api_kwargs = {
+        "api_key": os.getenv("OPENAI_API_KEY"),
+    }
     async with getattr(openai, api_cls)(**api_kwargs) as client:
         sem = asyncio.Semaphore(max_concurrency)
 
@@ -206,11 +212,6 @@ async def _gpt_batch_call_async(
             idx, content = await coro
             ordered[idx] = content
         return ordered
-
-def extract_score(txt):
-    pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
-    m = pattern.search(str(txt))
-    return int(m.group(1)) if m else None
     
 async def qwen_batch_call(
     messages,
@@ -219,8 +220,6 @@ async def qwen_batch_call(
     model="qwen/qwen2.5-vl-32b-instruct",
     **call_kwargs,
 ):
-    from openai import OpenAI
-    import os
     max_concurrency=4
     api_kwargs = {
         "base_url": "https://openrouter.ai/api/v1",
@@ -269,8 +268,6 @@ async def gemini_batch_call(
     model="google/gemini-2.0-flash-lite-001",
     **call_kwargs,
 ):
-    from openai import OpenAI
-    import os
     max_concurrency=2
     api_kwargs = {
         "base_url": "https://openrouter.ai/api/v1",
@@ -287,7 +284,7 @@ async def gemini_batch_call(
                         model=model, messages=m
                     )
                     raw_reply = resp.choices[0].message.content
-                    score = extract_score(raw_reply)
+                    score = script_eval.extract_score(raw_reply)
                     print(raw_reply)
                     return idx, raw_reply
             except Exception as e:

@@ -1,15 +1,15 @@
 # AutoEval
 
 ## Files
-- `eval.py`: runs auto-judge to generate results.
 - `configs/auto_eval.yaml`: prompt for the auto eval.
-- `winrate.py`: get the winrate results on the model's scores.
+- `script_eval.py`: runs auto-judge to generate results.
+- `script_winrate.py`: get the winrate results on the model's scores.
 
 ## Run
 ```bash
-python eval.py --mode "gpt" --root-path "../results"
-python eval.py --mode "qwen" --root-path "../results"
-python eval.py --mode "gemini" --root-path "../results"
+python script_eval.py --mode "gpt" --root-path "../results"
+python script_eval.py --mode "qwen" --root-path "../results"
+python script_eval.py --mode "gemini" --root-path "../results"
 ```
 
 --root-path must contain model generations in the format:
@@ -22,7 +22,7 @@ Example:
 ```
 
 ## Output
-Running eval.py produces JSON results under runs/, e.g.:
+Running script_eval.py produces JSON results under runs/, e.g.:
 ```bash
 runs/image_to_image_synthetic/bagel.json
 ```

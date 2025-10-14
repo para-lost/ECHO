@@ -1,7 +1,5 @@
 gpt_kwargs:
   api_cls: "AsyncOpenAI"
-  api_kwargs:
-    api_key: "your_api_key"
 
 qwen_kwargs:
   model: qwen/qwen2.5-vl-32b-instruct

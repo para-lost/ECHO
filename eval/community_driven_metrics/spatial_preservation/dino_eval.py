@@ -1,3 +1,8 @@
+# =================================================================
+# This code is adapted from extractor.py in Splice
+# Original source: https://github.com/omerbt/Splice/blob/master/models/extractor.py
+# =================================================================
+
 from torchvision import transforms as T
 import torch
 import numpy as np

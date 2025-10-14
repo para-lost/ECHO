@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
-import os
-import json
-import pandas as pd
 from collections import Counter
-import eval  # your module
+import json
 import numpy as np
-# ---- Config ----
+import os
+import pandas as pd
+
+import script_eval
+
 split = "text_to_image"
 csv_file = "all_scores.csv"
 
@@ -22,12 +22,14 @@ def maybe_extract_score(df: pd.DataFrame) -> pd.Series:
     """
     if "score" in df.columns:
         return pd.to_numeric(df["score"], errors="coerce")
-    if "raw" in df.columns and hasattr(eval, "extract_score"):
-        return df["raw"].apply(eval.extract_score)
+    if "raw" in df.columns and hasattr(script_eval, "extract_score"):
+        return df["raw"].apply(script_eval.extract_score)
     raise ValueError("No usable score source: expected 'score' column or 'raw'+extract_score")
 
 def load_judge_results(judge_file: str) -> pd.DataFrame:
-    """Load results from one judge CSV -> DataFrame[question_id, model, score]."""
+    """
+    Load results from one judge CSV -> DataFrame[question_id, model, score].
+    """
     if not os.path.exists(judge_file):
         print(f"[WARN] Missing judge file: {judge_file}")
         return pd.DataFrame(columns=["question_id", "model", "score"])
@@ -56,7 +58,7 @@ def majority_vote_pairwise(judge_results_list):
     for i, judge_results in enumerate(judge_results_list):
         if judge_results.empty:
             continue
-        pairwise = eval.scores_to_pairwise(judge_results)
+        pairwise = script_eval.scores_to_pairwise(judge_results)
         pairwise["judge_id"] = i
         pairwise_results.append(pairwise)
 
@@ -66,7 +68,7 @@ def majority_vote_pairwise(judge_results_list):
     all_pairwise = pd.concat(pairwise_results, ignore_index=True)
 
     def get_majority_vote_pairwise(group: pd.DataFrame) -> pd.Series:
-        # votes for model_a/model_b
+        # Votes for model_a/model_b
         a = group["model_a"].iloc[0]
         b = group["model_b"].iloc[0]
         votes_a = (group["winner"] == a).sum()
@@ -129,14 +131,12 @@ def main():
 
     # Winrates (fastchat arena-style)
     print("\nComputing winrates...")
-    winrate = eval.arena_fastchat_winrate(autoeval_results)
-    # 'winrate' is typically a pandas DataFrame; print nicely
+    winrate = script_eval.arena_fastchat_winrate(autoeval_results)
+    # Note that 'winrate' is typically a pandas DataFrame; print nicely
     try:
         print(winrate.sort_values("winrate", ascending=False))
     except Exception:
         print(winrate)
-        
-        # --- Std/SE consistent with arena_fastchat_winrate (per-comparison) ---
 
     # Ensure winner is in {'model_a','model_b'} or None (ties)
     df = autoeval_results.copy()
@@ -166,12 +166,15 @@ def main():
 
     per_model = scores.groupby('model')['score']
     print(per_model)
-    winrate_cmp = per_model.mean()                # matches arena winrate
-    std_cmp     = per_model.std(ddof=1)           # sample std over comparisons
-    N_cmp       = per_model.count()               # number of comparisons for the model
-    se_cmp      = std_cmp / np.sqrt(N_cmp)        # empirical SE on same unit
-    ci_low      = winrate_cmp - 1.96 * se_cmp
-    ci_high     = winrate_cmp + 1.96 * se_cmp
+    winrate_cmp = per_model.mean()
+    # Sample std over comparisons
+    std_cmp = per_model.std(ddof=1)
+    # Number of comparisons for the model
+    N_cmp = per_model.count()
+    # Empirical SE on same unit
+    se_cmp = std_cmp / np.sqrt(N_cmp)
+    ci_low = winrate_cmp - 1.96 * se_cmp
+    ci_high = winrate_cmp + 1.96 * se_cmp
 
     arena_consistent = (
         pd.DataFrame({
@@ -192,7 +195,6 @@ def main():
         winrate_with_se = winrate.merge(arena_consistent, on='model', how='left', suffixes=('', '_arena'))
     except Exception:
         winrate_with_se = arena_consistent
-
     print("\nArena-consistent std/SE over per-comparison scores:")
     print(winrate_with_se)
 
@@ -201,7 +203,5 @@ def main():
     print(f"Saved arena-consistent stats to {out_path}")
     return per_model
 
-
 if __name__ == "__main__":
     per_model = main()
-    

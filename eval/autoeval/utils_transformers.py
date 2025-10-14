@@ -3,33 +3,10 @@ import numpy as np
 import os
 import torch
 import transformers
-from tqdm import tqdm
-
-from diffusers.pipelines.stable_diffusion import StableDiffusionSafetyChecker
+import tqdm
 from transformers import AutoFeatureExtractor, AutoProcessor
 
 import utils_gpt
-
-def nsfw_call(model, extractor, images, batch_size=256):
-    all_outputs = []
-    for i in tqdm(range(0, len(images), batch_size)):
-        images_np = [np.array(i.convert("RGB")) for i in images[i:i+batch_size]]
-        inputs = extractor(images=images_np, return_tensors="pt")
-        inputs = inputs.to(model.device)
-        outputs = model(clip_input=inputs.pixel_values, images=images_np)[1]
-        all_outputs.extend(outputs)
-    return all_outputs
-
-def nsfw_load_call(local_rank, transformers_kwargs, chunk):
-    model_name = transformers_kwargs.get("model_name", "CompVis/stable-diffusion-safety-checker")
-    model = StableDiffusionSafetyChecker.from_pretrained(model_name)
-    model.to(f"cuda:{local_rank}").eval()
-    extractor = AutoFeatureExtractor.from_pretrained(model_name)
-    return nsfw_call(model, extractor, chunk)
-
-def crop_image(image, bbox, padding=10):
-    x1, y1, x2, y2 = bbox
-    return image.crop([x1 + padding, y1 + padding, x2 - padding, y2 - padding])
 
 def load_model(model_cls, model_kwargs):
     model = getattr(transformers, model_cls).from_pretrained(**model_kwargs)

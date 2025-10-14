@@ -1,26 +1,23 @@
-import re
-from collections import defaultdict, Counter
-import os
-from PIL import Image
-from omegaconf import OmegaConf
-import subprocess
-from datasets import load_dataset
 import asyncio
-from tqdm import tqdm
+from collections import defaultdict, Counter
+from datasets import load_dataset
+import glob
+import itertools
 import json
 import numpy as np
+import os
 import pandas as pd
-import itertools
+from PIL import Image
 import random
-import glob
+import re
+import subprocess
+from tqdm import tqdm
+from omegaconf import OmegaConf
 
 import sys
-# sys.path.append("../")
 from utils_transformers import *
 from utils_gpt import *
-from utils_arena_hard import *
 from utils_arena_fastchat import *
-
 
 import argparse
 
@@ -39,9 +36,6 @@ def parse_args():
     )
     return p.parse_args()
     
-# ====================
-#  Human Correlation
-# ====================
 def scores_to_pairwise(results):
     models = results["model"].unique()
     df = []
@@ -65,66 +59,6 @@ def scores_to_pairwise(results):
             })
     return pd.DataFrame(df)
 
-# =================
-#    Arena Hard
-# =================
-def get_arena_hard_battles(results, model, category=None, weight=3):
-    patterns = ["\[\[([AB<>=]+)\]\]", "\[([AB<>=]+)\]"]
-    results = {k: utils_arena_hard.get_score(v, patterns) for k, v in results.items()}
-    # weight = duplicate rows to upweight opinion
-    label_to_score = {
-        "A>B": [1],
-        "A>>B": [1] * weight,
-        "A=B": [0.5],
-        "A<<B": [0] * weight,
-        "A<B": [0],
-        "B>A": [0],
-        "B>>A": [0] * weight,
-        "B=A": [0.5],
-        "B<<A": [1] * weight,
-        "B<A": [1],
-    }
-    results = {k: label_to_score[v] for k, v in results.items()}
-    # create df
-    df = []
-    for k, v in results.items():
-        if "output-baseline" in k:
-            k_fwd = k
-            k_rev = k.replace("output-baseline", "baseline-output")
-            scores = np.array(results[k_fwd]) + 1 - np.array(results[k_rev])
-            for score in scores:
-                df.append({
-                    "uid": "_".join(k.split("_")[:-1]),
-                    "model": model,
-                    "category": category,
-                    "scores": score,
-                })
-        else:
-            continue
-    df = pd.DataFrame(df)
-    return df
-
-def arena_hard_winrate(results_folder, models, id_to_category=None):
-    battles = []
-    for model in models:
-        results = json.load(open(f"{results_folder}/{model}/raw_results.json"))
-        df = get_arena_hard_battles(results, model)
-        battles.append(df)
-    battles = pd.concat(battles)
-    if id_to_category is not None:
-        battles["category"] = battles["uid"].map(id_to_category)
-    categories = battles["category"].unique()
-    leaderboards = []
-    for category in categories:
-        leaderboard = utils_arena_hard.print_leaderboard(battles[battles["category"] == category], category)
-        leaderboard["category"] = category
-        leaderboards.append(leaderboard)
-    leaderboards = pd.concat(leaderboards)
-    return leaderboards, battles
-
-# =================
-#    Auto Eval
-# =================
 def extract_score(txt):
     pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
     m = pattern.search(str(txt))
@@ -199,7 +133,6 @@ async def experiment_evaluate(model_kwargs, input_ds, format_sample_fn, format_s
         json.dump(raw_results, open(output_file, "w"))
     
     return raw_results
-
 
 if __name__ == "__main__":
     args = parse_args()
