@@ -8,7 +8,7 @@ This repository contains the code accompanying the paper:
 Jiaxin Ge*, Grace Luo*, Heekyung Lee, Nishant Malpani, Long Lian, XuDong Wang, Aleksander Holynski, Trevor Darrell, Sewon Min, and David M. Chan<br>
 UC Berkeley
 
-For any questions, please contact us at [echo-bench@googlegroups.com](mailto:echo-bench@googlegroups.com).
+For any questions or inquiries, please contact us at [echo-bench@googlegroups.com](mailto:echo-bench@googlegroups.com).
 
 ---
 
@@ -36,14 +36,6 @@ Load the academic version of the dataset:
 ds = load_dataset(
     "echo-bench/echo2025",
     name="text_to_image", # ["analysis", "text_to_image", "image_to_image"]
-    split="test",
-)
-```
-Load the MIT licensed version of the dataset:
-```
-ds_mit = load_dataset(
-    "echo-bench/echo2025-mit",
-    name="text_to_image", # ["text_to_image", "image_to_image"]
     split="test",
 )
 ```
