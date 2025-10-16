@@ -131,15 +131,12 @@ def main(config):
     # Winrates (fastchat arena-style)
     print("\nComputing winrates...")
     winrate = arena_fastchat_winrate(autoeval_results)
+    winrate = winrate.rename(columns={"score": "winrate"})
     # Note that 'winrate' is typically a pandas DataFrame; print nicely
-    try:
-        print(winrate.sort_values("winrate", ascending=False))
-    except Exception:
-        print(winrate)
+    print(winrate.sort_values("winrate", ascending=False))
 
     # Ensure winner is in {'model_a','model_b'} or None (ties)
     df = autoeval_results.copy()
-    # If your majority vote produced model names as winner, map back to side labels:
     if not df['winner'].isin(['model_a', 'model_b']).all():
         def to_side(row):
             w = row['winner']
@@ -188,9 +185,8 @@ def main(config):
         .reset_index(drop=True)
     )
 
-    # Merge with your previously computed `winrate` table if you want to keep extra columns
     try:
-        winrate_with_se = winrate.merge(arena_consistent, on='model', how='left', suffixes=('', '_arena'))
+        winrate_with_se = winrate.merge(arena_consistent, on='model', how='left', suffixes=('', ''))
     except Exception:
         winrate_with_se = arena_consistent
     print("\nArena-consistent std/SE over per-comparison scores:")

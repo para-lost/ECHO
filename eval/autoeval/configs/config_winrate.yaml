@@ -1,5 +1,5 @@
 split_name: "text_to_image"
-judge_files: 
+judge_names: 
   - gpt
   # - gemini
   # - qwen
