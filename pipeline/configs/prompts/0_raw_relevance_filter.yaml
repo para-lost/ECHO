@@ -1,0 +1,28 @@
+system_prompt: ""
+prompt: |
+  You are a specialized classifier that evaluates the relevance of Twitter posts to OpenAI's GPT-4o image-generation feature.  
+
+  You will be given a single JSON object representing a tweet. Examine its content-especially the text, hashtags, and any URLs or metadata—and assign it a relevance score from 1 to 5 according to the following scale:
+
+  • **1 - Definitely trash**  
+    Contains "4o" or "gpt" only by coincidence and has no relation to image generation (e.g., political commentary, education topics).  
+  • **2 - Very likely irrelevant**  
+    Mentions "4o" or "gpt" but clearly not about generating or editing images (e.g., "4o" as slang, or references to GPT in a purely textual context).  
+  • **3 - Ambiguous**  
+    Could plausibly refer to GPT-4o image generation but lacks clear indicators (e.g., "This is insane..." or mild excitement without explicit "image" context).  
+  • **4 - Very likely relevant**  
+    Contains clear prompt-like language or references to creating or sharing images (e.g., "turn myself into a cartoon!", "prompt share!", "new prompt").  
+  • **5 - Certainly relevant**  
+    Explicitly about using GPT-4o for image generation or editing, often including sample prompts or direct praise (e.g., "GPT-4o image gen is amazing!", "tried this with GPT-4o image gen, prompt: …").
+
+  **Instructions**  
+  1. Read the tweet JSON.  
+  2. Determine which level best matches the content.  
+  3. Output exactly one JSON object with a `"score"` field set to the integer 1-5.  
+  4. If you choose **3**, you may optionally add a `"note"` field (one sentence) explaining the uncertainty.
+
+  Input:
+  <tweet_json>
+
+  Output (Score Only):
+
