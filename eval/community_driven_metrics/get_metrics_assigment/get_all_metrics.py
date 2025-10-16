@@ -21,7 +21,7 @@ import glob
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Assign metrics to ECHO samples using GPT")
-    parser.add_argument("--dataset", default="echo-bench/echo2025-mit",
+    parser.add_argument("--dataset", default="echo-bench/echo2025",
                        help="HuggingFace dataset name or local path")
     parser.add_argument("--config", default="image_to_image",
                        help="Dataset config to process (default: image_to_image)")

@@ -16,7 +16,7 @@ from typing import Any
 # ----------------------------------------------------------------------
 def parse_args():
     p = argparse.ArgumentParser("Face Identity Metric - AuraFace")
-    p.add_argument("--dataset", default="echo-bench/echo2025-mit",
+    p.add_argument("--dataset", default="echo-bench/echo2025",
                    help="HF dataset name or local path")
     p.add_argument("--config",   default="image_to_image",
                    help="Dataset config to evaluate (default: image_to_image)")
