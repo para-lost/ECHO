@@ -58,14 +58,12 @@ def format_sample_score(sample, idx, output_image_folder, tag_model=False, image
     id = f"{sample['id']}"
     output_image_file = glob.glob(f"{output_image_folder}/{id}*")
     if not output_image_file or not os.path.exists(output_image_file[0]):
-        print("no output_image_file")
         return
 
     # Prepare input images
     input_images = sample["input_images"]
     if input_images and type(input_images[0]) is str:
         input_images = [Image.open(f) for f in input_images]
-    print("len of input_images", len(input_images))
     
     # Prepare output image
     output_image = Image.open(output_image_file[0])
@@ -100,7 +98,6 @@ async def experiment_evaluate(model_kwargs, input_ds, format_sample_fn, format_s
         create_message_fn = utils_gpt.qwen_create_message
         for id, create_message_kwargs in zip(all_ids, all_create_message_kwargs):
             message = create_message_fn(**create_message_kwargs)
-            # print("message", message)
             batch_messages.append(message)
             batch_ids.append(id)
 

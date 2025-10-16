@@ -18,7 +18,7 @@ The folder `$ROOT_PATH` must contain model outputs in the format:
 # Template
 $ROOT_PATH/<split_name>/<model_name>/<id>.jpg
 # Example
-$ROOT_PATH/text_to_image/bagel/1904601298038906936.jpg
+$ROOT_PATH/text_to_image/bagel/2aebdAbu2EzLSqdpCXGS9X.jpg
 ```
 
 Running `script_eval.py` produces compiled csvs under `runs/<split_name>/<mode>.csv` (composed of the columns `question_id,model,score`) as well as raw outputs as JSON files.

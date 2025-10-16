@@ -13,8 +13,6 @@ from PIL import Image
 import re
 from tqdm.asyncio import tqdm_asyncio
 
-import script_eval
-
 def resize_to_side(image, target_size, fn="min"):
     width, height = image.size
     if fn == "min":
@@ -238,7 +236,6 @@ async def qwen_batch_call(
                         resp = await client.chat.completions.create(
                             model=model, messages=m
                         )
-                        print(resp.choices[0].message.content)
                         return idx, resp.choices[0].message.content
                 except Exception as e:
                     error_str = str(e).lower()
@@ -284,8 +281,6 @@ async def gemini_batch_call(
                         model=model, messages=m
                     )
                     raw_reply = resp.choices[0].message.content
-                    score = script_eval.extract_score(raw_reply)
-                    print(raw_reply)
                     return idx, raw_reply
             except Exception as e:
                 print(e)
