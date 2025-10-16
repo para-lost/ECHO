@@ -21,7 +21,7 @@ The dataset contains the following splits:
 |-------|-------------|------|
 | `analysis` | 29.3k | Moderate-quality data suitable for large-scale analysis.|
 | `text_to_image` | 848 | High-quality data with prompt-only inputs for benchmarking.|
-| `image_to_image` | 717 | High-quality data with prompt and image inputs for benchmarking.|
+| `image_to_image` | 710 | High-quality data with prompt and image inputs for benchmarking.|
 
 ## Setup
 
@@ -53,13 +53,14 @@ This setup assigns a score to each output, converts these scores into pseudo pai
 
 ### Community-Driven Metrics
 
-The folder `eval/community_driven_metrics` contains implementations of four metrics derived from community feedback. These metrics correspond to each subfolder:
+The folder `eval/community_driven_metrics` contains code relating the metrics derived from community feedback.
+The `get_metrics_assignment` folder contains code for classifying which metrics apply to each sample.
+
+<!-- implementations of four metrics derived from community feedback. These metrics correspond to each subfolder:
 - `color_shift`: Computes color shift magnitude as the average difference between the color histogram of the input versus output images.
 - `face_identity`: Computes face embedding similarity using [AuraFace](https://huggingface.co/fal/AuraFace-v1). 
 - `spatial_preservation`: Computes structure distance using the Frobenius norm of Gram matrices derived from [DINO](https://arxiv.org/abs/2104.14294) features, implemented using the code from [Splice](https://splice-vit.github.io/).
-- `text_rendering`: Computes text rendering accuracy using VLM-as-a-judge.
-
-The `get_metrics_assignment` folder contains code for classifying which metrics apply to each sample.
+- `text_rendering`: Computes text rendering accuracy using VLM-as-a-judge. -->
 
 ## Data Collection Pipeline
 Coming soon.
