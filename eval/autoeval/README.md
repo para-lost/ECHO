@@ -8,9 +8,9 @@
 ## Run VLM-as-a-Judge
 ```
 export ROOT_PATH="example_outputs"
-python script_eval.py mode="gpt" root_path=$ROOT_PATH
-python script_eval.py mode="qwen" root_path=$ROOT_PATH
-python script_eval.py mode="gemini" root_path=$ROOT_PATH
+python script_eval.py mode="gpt" root_path=$ROOT_PATH "split_names=['text_to_image']"
+python script_eval.py mode="qwen" root_path=$ROOT_PATH "split_names=['text_to_image']"
+python script_eval.py mode="gemini" root_path=$ROOT_PATH "split_names=['text_to_image']"
 ```
 
 The folder `$ROOT_PATH` must contain model outputs in the format:
@@ -26,5 +26,5 @@ Running `script_eval.py` produces compiled csvs under `runs/<split_name>/<mode>.
 ## Compute Win Rate
 Run script_winrate.py on the csv file(s) to get win rate results:
 ```bash
-python script_winrate.py mode="text_to_image" "judge_names=['gpt']"
+python script_winrate.py split_name="text_to_image" "judge_names=['gpt']"
 ```

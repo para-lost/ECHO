@@ -14,10 +14,15 @@ import subprocess
 import sys
 from tqdm import tqdm
 from omegaconf import OmegaConf
+from torch.utils.data import DataLoader
 
 import utils_transformers
 import utils_gpt
 import utils_arena_fastchat
+
+import sys
+sys.path.append("../../echo_bench")
+from echo_bench_i2i import echo_bench_i2i_collate
 
 def extract_score(txt):
     pattern = re.compile(r'\[\[\s*(10|[1-9])\s*\]\]')
@@ -122,6 +127,8 @@ def main(config):
     for split_name in config.split_names:
         output_image_folder = f"{root_path}/{split_name}"
         input_ds = load_dataset("echo-bench/echo2025", name=split_name, split="test", streaming=False)
+        if split_name == "image_to_image":
+            assert NotImplementedError("The image-to-image split is not supported yet.")
         clean_results = []
         for model in sorted([os.path.basename(f) for f in glob.glob(f"{output_image_folder}/*")]):
             print(f"Evaluating {model}")
@@ -140,7 +147,8 @@ def main(config):
                     clean_results.append({"question_id": k, "model": model, "score": extract_score(v)})
                 except:
                     print(f"Error extracting score for {k}")
-        pd.DataFrame(clean_results).to_csv(f"runs/{split_name}/{mode}.csv", index=False)
+        if clean_results:
+            pd.DataFrame(clean_results).to_csv(f"runs/{split_name}/{mode}.csv", index=False)
 
 if __name__ == "__main__":
     config = OmegaConf.load("configs/config_eval.yaml")

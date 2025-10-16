@@ -110,7 +110,7 @@ def arena_fastchat_winrate(results, models=None):
     return scores.groupby(['model'])['score'].mean().reset_index()
 
 def main(config):
-    judge_files = [f"runs/{config.split}/{mode}.csv" for mode in config.judge_names]
+    judge_files = [f"runs/{config.split_name}/{mode}.csv" for mode in config.judge_names]
 
     # Load all judge CSVs
     print("Loading results from all judges...")

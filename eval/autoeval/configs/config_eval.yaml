@@ -1,6 +1,5 @@
 root_path: "example_outputs" # Root path containing all outputs
 mode: "gpt" # Backend to use for evaluation; one of ["gpt", "transformers", "qwen", "gemini"]
-# Splits to evaluate
 split_names: 
   - "text_to_image"
   # - "image_to_image"
