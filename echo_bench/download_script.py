@@ -141,7 +141,7 @@ def ensure_png(infile: Path, outfile: Path) -> bool:
     except Exception:
         return False
 
-def crop_with_bboxes(img_path: Path, bboxes: List[List[int]], out_dir: Path, prefix: str):
+def crop_with_bboxes(img_path: Path, bboxes: List[List[int]], out_dir: Path, prefix: str, padding=10):
     """Save crops as <prefix>_crop_<k>.png for each bbox."""
     if not bboxes:
         return
@@ -151,10 +151,10 @@ def crop_with_bboxes(img_path: Path, bboxes: List[List[int]], out_dir: Path, pre
             out_dir.mkdir(parents=True, exist_ok=True)
             for k, (x1, y1, x2, y2) in enumerate(bboxes, 1):
                 # clamp to image bounds
-                x1c = max(0, min(int(x1), W - 1))
-                y1c = max(0, min(int(y1), H - 1))
-                x2c = max(0, min(int(x2), W))
-                y2c = max(0, min(int(y2), H))
+                x1c = max(0, min(int(x1 + padding), W - 1))
+                y1c = max(0, min(int(y1 + padding), H - 1))
+                x2c = max(0, min(int(x2 - padding), W))
+                y2c = max(0, min(int(y2 - padding), H))
                 if x2c <= x1c or y2c <= y1c:
                     continue
                 crop = im.crop((x1c, y1c, x2c, y2c))
@@ -184,6 +184,7 @@ def main():
         id_dir = OUT_DIR / rid
         inputs_dir = id_dir / "input_images"
         crops_dir  = id_dir / "crops"
+        
         inputs_dir.mkdir(parents=True, exist_ok=True)
 
         # inputs: list of media tokens/URLs
@@ -201,8 +202,7 @@ def main():
             url = media_id_to_url(str(token))
             tmp_jpg  = inputs_dir / f"input_{i}.jpg"
             final_png = inputs_dir / f"input_{i}.png"
-            # check if the file exists
-
+           
             ok = safe_download(url, tmp_jpg)
             if not ok:
                 # fallback: try without query (some IDs only work with ?name=large or ?name=orig)
