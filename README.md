@@ -1,6 +1,6 @@
 # Constantly Improving Image Models Need Constantly Improving Benchmarks
 
-### [Project Page](https://echo-bench.github.io) | [Data](https://huggingface.co/datasets/echo-bench)
+### [Project Page](https://echo-bench.github.io) | [Paper](https://arxiv.org/abs/2510.15021)  | [Data](https://huggingface.co/datasets/echo-bench)
 
 This repository contains the code accompanying the paper:
 
@@ -69,7 +69,7 @@ Coming soon.
 @article{ge2025echo,
   title={Constantly Improving Image Models Need Constantly Improving Benchmarks},
   author={Jiaxin Ge, Grace Luo, Heekyung Lee, Nishant Malpani, Long Lian, XuDong Wang, Aleksander Holynski, Trevor Darrell, Sewon Min, David M. Chan},
-  journal={arXiv},
+  journal={arXiv preprint arXiv:2510.15021},
   year={2025}
 }
 ```
