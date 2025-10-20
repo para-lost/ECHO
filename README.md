@@ -1,4 +1,4 @@
-# Constantly Improving Image Models Need Constantly Improving Benchmarks
+# [Constantly Improving Image Models Need Constantly Improving Benchmarks](https://arxiv.org/abs/2510.15021)
 
 ### [Project Page](https://echo-bench.github.io) | [Data](https://huggingface.co/datasets/echo-bench)
 
