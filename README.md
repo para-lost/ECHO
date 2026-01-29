@@ -66,10 +66,10 @@ Coming soon.
 
 ## BibTeX
 ```
-@article{ge2025echo,
+@inproceedings{ge2026echo,
   title={Constantly Improving Image Models Need Constantly Improving Benchmarks},
-  author={Jiaxin Ge, Grace Luo, Heekyung Lee, Nishant Malpani, Long Lian, XuDong Wang, Aleksander Holynski, Trevor Darrell, Sewon Min, David M. Chan},
-  journal={arXiv preprint arXiv:2510.15021},
-  year={2025}
+  author={Jiaxin Ge and Grace Luo and Heekyung Lee and Nishant Malpani and Long Lian and XuDong Wang and Aleksander Holynski and Trevor Darrell and Sewon Min and David M. Chan},
+  booktitle={ICLR},
+  year={2026}
 }
 ```
