@@ -73,3 +73,10 @@ Coming soon.
   year={2026}
 }
 ```
+
+## License
+
+The original code in this repository is licensed under the [Apache License 2.0](LICENSE).
+Third-party code, models, and datasets retain their respective licenses and terms;
+this license does not change the terms of the separately distributed ECHO dataset
+or the underlying social media content.
